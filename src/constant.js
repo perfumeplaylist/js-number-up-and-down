@@ -9,6 +9,10 @@ const CONSTANT = {
     YES: "yes",
     NO: "no",
   },
+  ID: {
+    NUMBER: "number",
+    RETRY: "retry",
+  },
 };
 
 export default CONSTANT;
