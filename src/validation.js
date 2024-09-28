@@ -18,6 +18,7 @@ const validation = {
     const regex = new RegExp(`^${tempValue}$`, "i");
     return regex.test(input);
   },
+
   isSameValue: (value, temp) => {
     return value === temp;
   },

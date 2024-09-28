@@ -1,10 +1,8 @@
 import View from "./View.js";
 import Model from "./Model.js";
-import play from "./Game.js";
+import Game from "./Controller.js";
 
 (async function init(view, model) {
-  while (model.isReStart) {
-    await play(view, model);
-  }
-  view.end();
+  const game = new Game(model, view);
+  await model.start(game);
 })(new View(), new Model());
