@@ -1,8 +1,8 @@
-import CONSTANT from "./constant.js";
-import CustomError from "./CustomError.js";
-import validation from "./validation.js";
+import CONSTANT from "../constant.js";
+import CustomError from "../CustomError.js";
+import validation from "../validation.js";
 
-export default class Model {
+export default class GameLogicModel {
   constructor() {
     this.count = 0;
     this.randomNumber = 0;

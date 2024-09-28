@@ -1,7 +1,7 @@
 import readline from "readline";
-import CONSTANT from "./constant.js";
+import CONSTANT from "../constant.js";
 
-export default class View {
+export default class GameView {
   #printMessage(message) {
     console.log(message);
   }

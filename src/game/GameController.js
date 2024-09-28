@@ -1,7 +1,7 @@
-import Model from "./Model.js";
-import View from "./View.js";
+import Model from "./GameLogicModel.js";
+import View from "./GameView.js";
 
-export default class Game {
+export default class GameController {
   constructor(model = new Model(), view = new View()) {
     this.model = model;
     this.view = view;
