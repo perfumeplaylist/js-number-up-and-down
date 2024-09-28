@@ -1,7 +1,5 @@
 import CONSTANT from "./constant.js";
 
-// view를 다루면 안될것 같음
-
 const validation = {
   numberValidation: (value) => {
     if (isNaN(value)) return true;
