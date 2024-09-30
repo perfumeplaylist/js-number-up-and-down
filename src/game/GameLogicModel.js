@@ -2,6 +2,9 @@ import CONSTANT from "../constant.js";
 import CustomError from "../CustomError.js";
 import validation from "../validation.js";
 
+// 여기서는 비지니스 로직 작성
+// 기능 추상화가 아니라 동작 추상화 생각
+
 export default class GameLogicModel {
   constructor() {
     this.count = 0;
@@ -9,7 +12,6 @@ export default class GameLogicModel {
     this.prevValue = [];
     this.isReStart = true;
     this.inputValue = null;
-    this.game = null;
   }
 
   #getRandomNumber() {
@@ -24,7 +26,7 @@ export default class GameLogicModel {
     this.prevValue = value;
   }
 
-  #updateIsReStart(value) {
+  updateIsReStart(value) {
     this.isReStart = value;
   }
 
@@ -32,75 +34,53 @@ export default class GameLogicModel {
     this.inputValue = value;
   }
 
-  validateNumberInput(number) {
-    if (validation.main(CONSTANT.ID.NUMBER, number, this.prevValue)) {
-      this.sameErrorMessage(number);
-    }
+  updateSuccess(number) {
     this.#updateInputValue(number);
+    this.#updatePrevValue([...this.prevValue, number]);
+    this.#updateCount(this.count + 1);
   }
 
-  reTryGame(retryValue) {
+  isDoingGame() {
+    return this.count < CONSTANT.NUMBER.LIMIT_COUNT;
+  }
+
+  checkSuccess() {
+    const isSame = validation.isSameValue(this.inputValue, this.randomNumber);
+    return isSame;
+  }
+
+  validateRetry(retryValue) {
     const isRetry = validation.main(CONSTANT.ID.RETRY, retryValue);
-    this.#updateIsReStart(isRetry);
-    !isRetry && this.reTryErrorMessage(retryValue);
+    return isRetry;
   }
 
   reTryErrorMessage(inputValue) {
+    // 에러를 던져주는게 아니라 controller에서 처리하도록 해야한다.
+    // 즉 여기서는 비지니스 로직만 작성하여 상태를 업데이트 하거나 해당 동작만 수행하도록 해야한다
     if (!validation.validateInput(inputValue, CONSTANT.MESSAGE.NO)) {
-      throw new CustomError(CONSTANT.ID.RETRY, "입력 형식이 잘못되었습니다.");
+      return {
+        errorName: CONSTANT.ID.RETRY,
+        errorMessage: "입력 형식이 잘못되었습니다.",
+      };
     }
   }
 
-  sameErrorMessage(inputValue) {
-    if (validation.sameValidation(inputValue, this.prevValue)) {
-      throw new CustomError(
-        CONSTANT.ID.NUMBER,
-        "동일한 값을 입력하였습니다.다시 입력해주세요"
-      );
-    } else {
-      throw new CustomError(
-        CONSTANT.ID.NUMBER,
-        "입력 형식이 잘못되었습니다.다시 입력해주세요"
-      );
-    }
+  checkAndValidateInput(number) {
+    const isError =
+      validation.sameValidation(number, this.prevValue) ||
+      validation.main(CONSTANT.ID.NUMBER, number, this.prevValue);
+
+    const errorMessage = validation.sameValidation(number, this.prevValue)
+      ? "동일한 값을 입력하였습니다. 다시 입력해주세요"
+      : "입력 형식이 잘못되었습니다. 다시 입력해주세요";
+
+    return isError
+      ? { isError, error: { name: CONSTANT.ID.NUMBER, message: errorMessage } }
+      : false;
   }
 
-  async main() {
-    while (this.count < CONSTANT.NUMBER.LIMIT_COUNT) {
-      try {
-        await this.game.askNumber();
-
-        this.#updatePrevValue([...this.prevValue, this.inputValue]);
-        this.#updateCount(this.count + 1);
-
-        if (validation.isSameValue(this.inputValue, this.randomNumber)) {
-          await this.game.success();
-          return;
-        }
-
-        this.game.progress();
-      } catch (error) {
-        if (error.errorName === CONSTANT.ID.RETRY)
-          throw new CustomError(error.message);
-        this.game.errorMessage(error.message);
-        continue;
-      }
-    }
-    await this.game.failure();
-    return;
-  }
-
-  async start(controller) {
-    this.game = controller;
-    while (this.isReStart) {
-      try {
-        this.game.start();
-        await this.main();
-      } catch (error) {
-        this.game.errorMessage(error.message);
-      }
-    }
-    this.game.end();
+  isThrowErrorMessage(error) {
+    if (error.errorName === CONSTANT.ID.RETRY) throw new CustomError(...error);
   }
 
   reset() {
