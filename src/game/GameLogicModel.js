@@ -1,5 +1,4 @@
 import CONSTANT from "../constant.js";
-import CustomError from "../CustomError.js";
 import validation from "../validation.js";
 
 // 여기서는 비지니스 로직 작성
@@ -8,6 +7,9 @@ import validation from "../validation.js";
 export default class GameLogicModel {
   constructor() {
     this.count = 0;
+    this.limit = 0;
+    this.min = 0;
+    this.max = 0;
     this.randomNumber = 0;
     this.prevValue = [];
     this.isReStart = true;
@@ -15,7 +17,7 @@ export default class GameLogicModel {
   }
 
   #getRandomNumber() {
-    return Math.floor(Math.random() * CONSTANT.NUMBER.MAX_NUMBER) + 1;
+    return Math.floor(Math.random() * (this.max - this.min + 1)) + this.min;
   }
 
   #updateCount(count) {
@@ -34,14 +36,31 @@ export default class GameLogicModel {
     this.inputValue = value;
   }
 
+  #updateMinNumber(value) {
+    this.min = value;
+  }
+  #updateMaxNumber(value) {
+    this.max = value;
+  }
+
+  updateCountNumber(value) {
+    this.limit = value;
+  }
+
   updateSuccess(number) {
     this.#updateInputValue(number);
     this.#updatePrevValue([...this.prevValue, number]);
     this.#updateCount(this.count + 1);
   }
 
+  updateMinMaxRandomNumber(min, max) {
+    this.#updateMinNumber(min);
+    this.#updateMaxNumber(max);
+    this.randomNumber = this.#getRandomNumber();
+  }
+
   isDoingGame() {
-    return this.count < CONSTANT.NUMBER.LIMIT_COUNT;
+    return this.count < this.limit;
   }
 
   checkSuccess() {
@@ -50,13 +69,11 @@ export default class GameLogicModel {
   }
 
   validateRetry(retryValue) {
-    const isRetry = validation.main(CONSTANT.ID.RETRY, retryValue);
+    const isRetry = validation.validateInput(retryValue, CONSTANT.MESSAGE.YES);
     return isRetry;
   }
 
   reTryErrorMessage(inputValue) {
-    // 에러를 던져주는게 아니라 controller에서 처리하도록 해야한다.
-    // 즉 여기서는 비지니스 로직만 작성하여 상태를 업데이트 하거나 해당 동작만 수행하도록 해야한다
     if (!validation.validateInput(inputValue, CONSTANT.MESSAGE.NO)) {
       return {
         errorName: CONSTANT.ID.RETRY,
@@ -68,7 +85,7 @@ export default class GameLogicModel {
   checkAndValidateInput(number) {
     const isError =
       validation.sameValidation(number, this.prevValue) ||
-      validation.main(CONSTANT.ID.NUMBER, number, this.prevValue);
+      validation.numberValidation(number, this.min, this.max);
 
     const errorMessage = validation.sameValidation(number, this.prevValue)
       ? "동일한 값을 입력하였습니다. 다시 입력해주세요"
@@ -80,13 +97,15 @@ export default class GameLogicModel {
   }
 
   isThrowErrorMessage(error) {
-    if (error.errorName === CONSTANT.ID.RETRY) throw new CustomError(...error);
+    return error.errorName === CONSTANT.ID.RETRY;
   }
 
   reset() {
     this.count = 0;
+    this.limit = 0;
+    this.min = 0;
+    this.max = 0;
     this.prevValue = [];
-    this.randomNumber = this.#getRandomNumber();
     this.isReStart = true;
   }
 }
