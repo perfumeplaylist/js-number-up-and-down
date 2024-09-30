@@ -21,13 +21,30 @@ export default class GameController {
     this.view.end();
   }
 
+  async askMinMax() {
+    this.view.askMinMaxNumber();
+
+    const [min, max] = (await this.view.input("숫자입력: "))
+      .split(",")
+      .map((num) => parseInt(num, 10));
+
+    this.model.updateMinMaxRandomNumber(min, max);
+  }
+
+  async askGameCount() {
+    this.view.askGameCountNumber();
+
+    const number = parseInt(await this.view.input("숫자입력: "), 10);
+
+    this.model.updateCountNumber(number);
+  }
+
   async askNumber() {
     const number = parseInt(await this.view.input(`숫자 입력: `), 10);
-    const {
-      isError,
-      error: { name, message },
-    } = this.model.checkAndValidateInput(number);
-    if (isError) {
+    const result = this.model.checkAndValidateInput(number);
+
+    if (result && result.isError) {
+      const { name, message } = result.error;
       throw new CustomError(name, message);
     } else {
       this.model.updateSuccess(number);
@@ -41,9 +58,8 @@ export default class GameController {
     const isRetry = this.model.validateRetry(reTryValue);
     this.model.updateIsReStart(isRetry);
     if (!isRetry) {
-      const { errorName, errorMessage } =
-        this.model.reTryErrorMessage(reTryValue);
-      throw new CustomError(errorName, errorMessage);
+      const result = this.model.reTryErrorMessage(reTryValue);
+      if (result) throw new CustomError(result.errorName, result.errorMessage);
     }
   }
 
@@ -54,14 +70,20 @@ export default class GameController {
   }
 
   async exceedProcess() {
-    const { randomNumber } = this.model;
-    this.view.failure(randomNumber);
+    const { randomNumber, limit } = this.model;
+    this.view.failure(randomNumber, limit);
     await this.askIsRetryGame();
   }
 
   successProcess() {
     const isSuccess = this.model.checkSuccess();
     return isSuccess;
+  }
+
+  errorType(error) {
+    const isThrow = this.model.isThrowErrorMessage(error);
+    if (isThrow) throw new CustomError(error.errorName, error.message);
+    else this.errorMessage(error.message);
   }
 
   async main() {
@@ -77,8 +99,7 @@ export default class GameController {
 
         this.progress();
       } catch (error) {
-        this.model.isThrowErrorMessage(error);
-        this.errorMessage(error.message);
+        this.errorType(error);
         continue;
       }
     }
@@ -90,7 +111,9 @@ export default class GameController {
     while (this.model.isReStart) {
       try {
         this.model.reset();
-        this.view.start();
+        await this.askMinMax();
+        await this.askGameCount();
+        this.view.start(this.model.min, this.model.max);
         await this.main();
       } catch (error) {
         this.errorMessage(error.message);
