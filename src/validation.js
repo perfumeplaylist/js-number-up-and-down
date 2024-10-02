@@ -1,10 +1,8 @@
-import CONSTANT from "./constant.js";
-
 const validation = {
-  numberValidation: (value) => {
+  numberValidation: (value, min, max) => {
     if (isNaN(value)) return true;
 
-    const isRangeCheck = value >= 1 && value <= 50;
+    const isRangeCheck = value >= min && value <= max;
     return !isRangeCheck;
   },
   sameValidation: (value, temp) => {
@@ -19,26 +17,6 @@ const validation = {
 
   isSameValue: (value, temp) => {
     return value === temp;
-  },
-
-  main: (type, temp, tempValue) => {
-    let result = false;
-    switch (type) {
-      case "number": {
-        result =
-          validation.numberValidation(temp) ||
-          validation.sameValidation(temp, tempValue);
-
-        break;
-      }
-      case "retry": {
-        result = validation.validateInput(temp, CONSTANT.MESSAGE.YES);
-
-        break;
-      }
-    }
-
-    return result;
   },
 };
 

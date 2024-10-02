@@ -25,9 +25,21 @@ export default class GameView {
     });
   }
 
-  start() {
+  askMinMaxNumber() {
     this.#printMessage(
-      "컴퓨터가 1~50 사이의 숫자를 선택했습니다. 숫자를 맞춰보세요."
+      "[게임 설정] 게임 시작을 위해 최소 값, 최대 값을 입력해주세요. (예: 1, 50)"
+    );
+  }
+
+  askGameCountNumber() {
+    this.#printMessage(
+      "[게임 설정] 게임 시작을 위해 진행 가능 횟수를 입력해주세요."
+    );
+  }
+
+  start(min, max) {
+    this.#printMessage(
+      `컴퓨터가 ${min}~${max} 사이의 숫자를 선택했습니다. 숫자를 맞춰보세요.`
     );
   }
 
@@ -47,9 +59,9 @@ export default class GameView {
     this.#printMessage(`축하합니다! ${count}번 만에 숫자를 맞추셨습니다.`);
   }
 
-  failure(randomNumber) {
+  failure(randomNumber, limit) {
     this.#printMessage(
-      `5회 초과! 숫자를 맞추지 못했습니다. (정답: ${randomNumber})`
+      `${limit}회 초과! 숫자를 맞추지 못했습니다. (정답: ${randomNumber})`
     );
   }
 

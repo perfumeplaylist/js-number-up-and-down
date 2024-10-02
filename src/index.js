@@ -4,5 +4,5 @@ import Game from "./game/GameController.js";
 
 (async function init(view, model) {
   const game = new Game(model, view);
-  await model.start(game);
+  await game.start();
 })(new View(), new Model());
